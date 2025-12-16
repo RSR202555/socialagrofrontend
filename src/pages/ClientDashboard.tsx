@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { apiUrl } from '@/lib/api';
 import {
   Leaf,
@@ -40,12 +41,21 @@ type Pagamento = {
 
 const ClientDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'relatorios' | 'conteudos' | 'calendario' | 'configuracoes'>(
+    'dashboard',
+  );
   const [programacoes, setProgramacoes] = useState<Programacao[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [ultimoPagamento, setUltimoPagamento] = useState<Pagamento | null>(null);
+
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarNovaSenha, setConfirmarNovaSenha] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -67,12 +77,16 @@ const ClientDashboard = () => {
     }
   })();
 
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', active: true },
-    { icon: BarChart3, label: 'Relatórios', active: false },
-    { icon: FileText, label: 'Conteúdos', active: false },
-    { icon: Calendar, label: 'Calendário', active: false },
-    { icon: Settings, label: 'Configurações', active: false },
+  const menuItems: Array<{
+    icon: typeof LayoutDashboard;
+    label: string;
+    key: 'dashboard' | 'relatorios' | 'conteudos' | 'calendario' | 'configuracoes';
+  }> = [
+    { icon: LayoutDashboard, label: 'Dashboard', key: 'dashboard' },
+    { icon: BarChart3, label: 'Relatórios', key: 'relatorios' },
+    { icon: FileText, label: 'Conteúdos', key: 'conteudos' },
+    { icon: Calendar, label: 'Calendário', key: 'calendario' },
+    { icon: Settings, label: 'Configurações', key: 'configuracoes' },
   ];
 
   const getMonthlyPrice = () => {
@@ -195,6 +209,78 @@ const ClientDashboard = () => {
     return paid.getFullYear() === now.getFullYear() && paid.getMonth() === now.getMonth();
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('client_token');
+    localStorage.removeItem('client_info');
+    navigate('/painel');
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage(null);
+
+    if (!senhaAtual || !novaSenha) {
+      setPasswordMessage('Preencha a senha atual e a nova senha.');
+      return;
+    }
+
+    if (novaSenha !== confirmarNovaSenha) {
+      setPasswordMessage('A confirmação da nova senha não confere.');
+      return;
+    }
+
+    const token = localStorage.getItem('client_token');
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    setIsSavingPassword(true);
+    try {
+      const res = await fetch(apiUrl('/client/change-password'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ senhaAtual, novaSenha }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordMessage(data.error || 'Erro ao alterar senha.');
+        return;
+      }
+
+      setPasswordMessage('Senha alterada com sucesso.');
+      setSenhaAtual('');
+      setNovaSenha('');
+      setConfirmarNovaSenha('');
+    } catch {
+      setPasswordMessage('Erro de conexão ao alterar senha.');
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
+
+  const getTabTitle = () => {
+    if (activeTab === 'dashboard') return 'Dashboard do Cliente';
+    if (activeTab === 'relatorios') return 'Relatórios';
+    if (activeTab === 'conteudos') return 'Conteúdos';
+    if (activeTab === 'calendario') return 'Calendário';
+    return 'Configurações';
+  };
+
+  const getTabSubtitle = () => {
+    if (activeTab === 'dashboard') {
+      return clientInfo?.nome ? `Bem-vindo(a), ${clientInfo.nome}` : 'Bem-vindo de volta!';
+    }
+    if (activeTab === 'relatorios') return 'Acompanhe o status do seu projeto e mensalidade.';
+    if (activeTab === 'conteudos') return 'Veja as programações recebidas organizadas.';
+    if (activeTab === 'calendario') return 'Visualize suas programações por período.';
+    return 'Atualize seus dados e preferências.';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#00170f] via-[#002919] to-[#00170f] flex">
       {/* Sidebar - Desktop */}
@@ -215,10 +301,11 @@ const ClientDashboard = () => {
             <button
               key={index}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                item.active
+                activeTab === item.key
                   ? 'bg-gradient-to-r from-primary to-agro-green-light text-primary-foreground shadow-md shadow-black/30'
                   : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
               }`}
+              onClick={() => setActiveTab(item.key)}
             >
               <item.icon className="w-5 h-5" />
               <span className="font-medium">{item.label}</span>
@@ -241,12 +328,16 @@ const ClientDashboard = () => {
               <p className="text-muted-foreground text-xs">{clientInfo?.email}</p>
             </div>
           </div>
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground">
-              <LogOut className="w-4 h-4" />
-              Sair
-            </Button>
-          </Link>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="w-full justify-start gap-2 text-muted-foreground"
+          >
+            <LogOut className="w-4 h-4" />
+            Sair
+          </Button>
         </div>
       </aside>
 
@@ -271,10 +362,14 @@ const ClientDashboard = () => {
                 <button
                   key={index}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    item.active
+                    activeTab === item.key
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
+                  onClick={() => {
+                    setActiveTab(item.key);
+                    setIsSidebarOpen(false);
+                  }}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
@@ -297,12 +392,8 @@ const ClientDashboard = () => {
               <Menu className="w-5 h-5 text-foreground" />
             </button>
             <div>
-              <h1 className="font-heading text-xl font-bold text-primary-foreground">
-                Dashboard do Cliente
-              </h1>
-              <p className="text-sm text-primary-foreground/80">
-                {clientInfo?.nome ? `Bem-vindo(a), ${clientInfo.nome}` : 'Bem-vindo de volta!'}
-              </p>
+              <h1 className="font-heading text-xl font-bold text-primary-foreground">{getTabTitle()}</h1>
+              <p className="text-sm text-primary-foreground/80">{getTabSubtitle()}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -322,6 +413,7 @@ const ClientDashboard = () => {
 
         {/* Content */}
         <main className="flex-1 p-6 overflow-auto">
+          {activeTab === 'dashboard' ? (
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-card/95 rounded-2xl p-6 border border-border/60 shadow-lg shadow-black/30 backdrop-blur">
               <h2 className="font-heading text-lg font-bold text-foreground mb-2">
@@ -492,6 +584,185 @@ const ClientDashboard = () => {
               </div>
             </div>
           </div>
+          ) : activeTab === 'relatorios' ? (
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2 bg-card/95 rounded-2xl p-6 border border-border/60 shadow-lg shadow-black/20 backdrop-blur">
+                <h2 className="font-heading text-lg font-bold text-foreground mb-2">Resumo</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Informações rápidas sobre sua conta e andamento.
+                </p>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-xl border border-border/60 bg-background/60 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Programações</p>
+                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                    </div>
+                    <p className="font-heading text-2xl text-foreground mt-2">{programacoes.length}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Itens no painel</p>
+                  </div>
+                  <div className="rounded-xl border border-border/60 bg-background/60 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Mensalidade</p>
+                      {mensalidadePagaNesteMes() ? (
+                        <TrendingUp className="w-4 h-4 text-primary" />
+                      ) : (
+                        <Clock className="w-4 h-4 text-amber-400" />
+                      )}
+                    </div>
+                    <p className="font-heading text-2xl text-foreground mt-2">
+                      {mensalidadePagaNesteMes() ? 'Em dia' : 'Pendente'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {ultimoPagamento?.pago_em
+                        ? `Último pagamento: ${new Date(ultimoPagamento.pago_em).toLocaleDateString()}`
+                        : 'Sem registro de pagamento'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 rounded-xl border border-border/60 bg-background/60 p-4 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Plano</span>
+                    <span className="text-foreground">{clientInfo?.plano || 'Não informado'}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-muted-foreground">Valor mensal</span>
+                    <span className="text-foreground">{formatPriceBRL(getMonthlyPrice())}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-card rounded-2xl p-6 border border-border/60">
+                <h2 className="font-heading text-lg font-bold text-foreground mb-2">Ações</h2>
+                <p className="text-sm text-muted-foreground mb-4">Atalhos úteis.</p>
+                <Button type="button" className="w-full" variant="gold" onClick={handlePayInvoice} disabled={isPaying}>
+                  {isPaying ? 'Gerando...' : 'Pagar mensalidade'}
+                </Button>
+                <Button type="button" className="w-full mt-2" variant="outline" onClick={() => setActiveTab('conteudos')}>
+                  Ver conteúdos
+                </Button>
+              </div>
+            </div>
+          ) : activeTab === 'conteudos' ? (
+            <div className="bg-card/95 rounded-2xl p-6 border border-border/60 shadow-lg shadow-black/20 backdrop-blur">
+              <h2 className="font-heading text-lg font-bold text-foreground mb-2">Conteúdos</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Suas programações recebidas.
+              </p>
+
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Carregando...</p>
+              ) : error ? (
+                <p className="text-sm text-red-500">{error}</p>
+              ) : programacoes.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma programação encontrada.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {programacoes.map((p) => (
+                    <li key={p.id} className="rounded-xl border border-border/60 bg-background/60 p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-medium text-foreground">{p.periodo || 'Sem período'}</span>
+                        </div>
+                        <span className="text-[11px] text-muted-foreground">{new Date(p.criado_em).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm text-foreground whitespace-pre-line mt-2">{p.descricao}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : activeTab === 'calendario' ? (
+            <div className="bg-card/95 rounded-2xl p-6 border border-border/60 shadow-lg shadow-black/20 backdrop-blur">
+              <h2 className="font-heading text-lg font-bold text-foreground mb-2">Calendário</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Visualização por período das suas programações.
+              </p>
+
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Carregando...</p>
+              ) : programacoes.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma programação para exibir.</p>
+              ) : (
+                <div className="space-y-3">
+                  {programacoes.map((p) => (
+                    <div key={p.id} className="rounded-xl border border-border/60 bg-background/60 p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold text-foreground">{p.periodo || 'Período não informado'}</span>
+                        </div>
+                        <span className="text-[11px] text-muted-foreground">{new Date(p.criado_em).toLocaleString()}</span>
+                      </div>
+                      <p className="text-sm text-foreground whitespace-pre-line mt-2">{p.descricao}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2 bg-card/95 rounded-2xl p-6 border border-border/60 shadow-lg shadow-black/20 backdrop-blur">
+                <h2 className="font-heading text-lg font-bold text-foreground mb-2">Dados da conta</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Informações básicas da sua conta.
+                </p>
+                <div className="grid gap-3">
+                  <div className="rounded-xl border border-border/60 bg-background/60 p-4">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Nome</p>
+                    <p className="text-sm text-foreground mt-1">{clientInfo?.nome || '—'}</p>
+                  </div>
+                  <div className="rounded-xl border border-border/60 bg-background/60 p-4">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">E-mail</p>
+                    <p className="text-sm text-foreground mt-1">{clientInfo?.email || '—'}</p>
+                  </div>
+                  <div className="rounded-xl border border-border/60 bg-background/60 p-4">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Plano</p>
+                    <p className="text-sm text-foreground mt-1">{clientInfo?.plano || '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-card rounded-2xl p-6 border border-border/60">
+                <h2 className="font-heading text-lg font-bold text-foreground mb-2">Segurança</h2>
+                <p className="text-sm text-muted-foreground mb-4">Troque sua senha quando necessário.</p>
+
+                <form onSubmit={handleChangePassword} className="space-y-3">
+                  <Input
+                    type="password"
+                    placeholder="Senha atual"
+                    value={senhaAtual}
+                    onChange={(e) => setSenhaAtual(e.target.value)}
+                    required
+                  />
+                  <Input
+                    type="password"
+                    placeholder="Nova senha"
+                    value={novaSenha}
+                    onChange={(e) => setNovaSenha(e.target.value)}
+                    required
+                  />
+                  <Input
+                    type="password"
+                    placeholder="Confirmar nova senha"
+                    value={confirmarNovaSenha}
+                    onChange={(e) => setConfirmarNovaSenha(e.target.value)}
+                    required
+                  />
+                  {passwordMessage && <p className="text-sm text-muted-foreground">{passwordMessage}</p>}
+                  <Button type="submit" className="w-full" disabled={isSavingPassword}>
+                    {isSavingPassword ? 'Salvando...' : 'Alterar senha'}
+                  </Button>
+                </form>
+
+                <Button type="button" className="w-full mt-3" variant="outline" onClick={handleLogout}>
+                  Sair da conta
+                </Button>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
