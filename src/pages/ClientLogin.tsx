@@ -46,21 +46,21 @@ const ClientLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary via-agro-green-dark to-primary relative flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background relative flex items-center justify-center p-4">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-agro-gold/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary-foreground/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-agro-green-light/5 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-agro-gold/15 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-agro-green-light/10 rounded-full blur-3xl" />
       </div>
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md md:max-w-lg">
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <Leaf className="w-8 h-8 text-agro-gold" />
-          <span className="font-heading font-bold text-2xl text-primary-foreground">
-            <span className="text-agro-gold">Social</span> Agro
+          <Leaf className="w-8 h-8 text-primary" />
+          <span className="font-heading font-bold text-2xl text-foreground">
+            <span className="text-primary">Social</span> Agro
           </span>
         </Link>
 
