@@ -1,8 +1,7 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import cors from "cors";
-import fetch from "node-fetch";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { query, testConnection } from "./db";
 import adminRoutes from "./adminRoutes";
 
@@ -259,15 +258,32 @@ const authClientMiddleware = (req: Request, res: Response, next: () => void) => 
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as {
-      sub: number;
-      email: string;
-      nome: string;
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    if (typeof decoded === "string") {
+      return res.status(401).json({ error: "Token inválido" });
+    }
+
+    const payload = decoded as JwtPayload & {
+      sub?: string | number;
+      email?: string;
+      nome?: string;
       role?: string;
     };
 
+    const subNumber = payload.sub != null ? Number(payload.sub) : NaN;
+
+    if (!payload.email || !payload.nome || Number.isNaN(subNumber)) {
+      return res.status(401).json({ error: "Token inválido" });
+    }
+
     // @ts-expect-error anexando info do cliente na request
-    req.cliente = payload;
+    req.cliente = {
+      sub: subNumber,
+      email: payload.email,
+      nome: payload.nome,
+      role: payload.role,
+    };
     next();
   } catch {
     return res.status(401).json({ error: "Token inválido" });
