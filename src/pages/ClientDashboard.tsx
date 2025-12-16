@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { apiUrl } from '@/lib/api';
 import {
   Leaf,
   LayoutDashboard,
@@ -105,7 +106,7 @@ const ClientDashboard = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch('http://localhost:3000/client/programacoes', {
+        const res = await fetch(apiUrl('/client/programacoes'), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -132,7 +133,7 @@ const ClientDashboard = () => {
 
     const fetchUltimoPagamento = async () => {
       try {
-        const res = await fetch('http://localhost:3000/client/pagamentos/ultimo', {
+        const res = await fetch(apiUrl('/client/pagamentos/ultimo'), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -160,7 +161,7 @@ const ClientDashboard = () => {
       const priceNumber = getMonthlyPrice();
       const priceString = String(priceNumber);
 
-      const res = await fetch('http://localhost:3000/payments/mercadopago/checkout', {
+      const res = await fetch(apiUrl('/payments/mercadopago/checkout'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

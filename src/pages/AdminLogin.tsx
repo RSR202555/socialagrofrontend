@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { apiUrl } from "@/lib/api";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ const AdminLogin = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:3000/admin/login", {
+      const response = await fetch(apiUrl("/admin/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, senha }),

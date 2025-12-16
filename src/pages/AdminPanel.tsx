@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Users, CalendarRange, ListTodo, LogOut } from "lucide-react";
+import { apiUrl } from "@/lib/api";
 
 type Cliente = {
   id: number;
@@ -69,7 +70,7 @@ const AdminPanel = () => {
     setIsLoadingClientes(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:3000/admin/clientes", {
+      const res = await fetch(apiUrl("/admin/clientes"), {
         headers: getAuthHeaders(),
       });
       const data = await res.json();
@@ -89,7 +90,7 @@ const AdminPanel = () => {
     setIsLoadingProgramacoes(true);
     setError(null);
     try {
-      const res = await fetch(`http://localhost:3000/admin/clientes/${clienteId}/programacoes`, {
+      const res = await fetch(apiUrl(`/admin/clientes/${clienteId}/programacoes`), {
         headers: getAuthHeaders(),
       });
       const data = await res.json();
@@ -114,7 +115,7 @@ const AdminPanel = () => {
     e.preventDefault();
     setError(null);
     try {
-      const res = await fetch("http://localhost:3000/admin/clientes", {
+      const res = await fetch(apiUrl("/admin/clientes"), {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -169,7 +170,7 @@ const AdminPanel = () => {
     setError(null);
 
     try {
-      const res = await fetch(`http://localhost:3000/admin/clientes/${editingCliente.id}`, {
+      const res = await fetch(apiUrl(`/admin/clientes/${editingCliente.id}`), {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -207,7 +208,7 @@ const AdminPanel = () => {
     setError(null);
     try {
       const res = await fetch(
-        `http://localhost:3000/admin/clientes/${selectedCliente.id}/programacoes`,
+        apiUrl(`/admin/clientes/${selectedCliente.id}/programacoes`),
         {
           method: "POST",
           headers: getAuthHeaders(),

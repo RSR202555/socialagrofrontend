@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Leaf, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { apiUrl } from '@/lib/api';
 
 const ClientLogin = () => {
   const [email, setEmail] = useState('');
@@ -19,7 +20,7 @@ const ClientLogin = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://localhost:3000/client/login', {
+      const res = await fetch(apiUrl('/client/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
