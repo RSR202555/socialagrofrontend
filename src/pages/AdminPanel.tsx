@@ -49,6 +49,11 @@ const AdminPanel = () => {
   const [editSenha, setEditSenha] = useState("");
   const [editValorPersonalizado, setEditValorPersonalizado] = useState("");
 
+  const [editingProgramacao, setEditingProgramacao] = useState<Programacao | null>(null);
+  const [editProgramacaoPeriodo, setEditProgramacaoPeriodo] = useState("");
+  const [editProgramacaoDescricao, setEditProgramacaoDescricao] = useState("");
+  const [isSavingProgramacao, setIsSavingProgramacao] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
     if (!token) {
@@ -148,6 +153,71 @@ const AdminPanel = () => {
     setSelectedCliente(cliente);
     setProgramacoes([]);
     void fetchProgramacoes(cliente.id);
+  };
+
+  const openEditProgramacao = (p: Programacao) => {
+    setEditingProgramacao(p);
+    setEditProgramacaoPeriodo(p.periodo || "");
+    setEditProgramacaoDescricao(p.descricao);
+  };
+
+  const handleUpdateProgramacao = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCliente || !editingProgramacao) return;
+    setError(null);
+    setIsSavingProgramacao(true);
+
+    try {
+      const res = await fetch(
+        apiUrl(`/admin/clientes/${selectedCliente.id}/programacoes/${editingProgramacao.id}`),
+        {
+          method: "PUT",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+            periodo: editProgramacaoPeriodo || null,
+            descricao: editProgramacaoDescricao,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Erro ao atualizar programação");
+        return;
+      }
+
+      const updated = data.programacao as Programacao;
+      setProgramacoes((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      setEditingProgramacao(null);
+    } catch {
+      setError("Erro de conexão ao atualizar programação");
+    } finally {
+      setIsSavingProgramacao(false);
+    }
+  };
+
+  const handleDeleteProgramacao = async (p: Programacao) => {
+    if (!selectedCliente) return;
+    const ok = window.confirm("Excluir esta programação? Essa ação não pode ser desfeita.");
+    if (!ok) return;
+
+    setError(null);
+    try {
+      const res = await fetch(apiUrl(`/admin/clientes/${selectedCliente.id}/programacoes/${p.id}`), {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Erro ao excluir programação");
+        return;
+      }
+
+      setProgramacoes((prev) => prev.filter((item) => item.id !== p.id));
+    } catch {
+      setError("Erro de conexão ao excluir programação");
+    }
   };
 
   const openEditCliente = (cliente: Cliente) => {
@@ -440,6 +510,14 @@ const AdminPanel = () => {
                         <div className="text-[11px] text-muted-foreground">
                           {new Date(p.criado_em).toLocaleString()}
                         </div>
+                        <div className="flex justify-end gap-2 mt-2">
+                          <Button type="button" variant="outline" size="sm" onClick={() => openEditProgramacao(p)}>
+                            Editar
+                          </Button>
+                          <Button type="button" variant="destructive" size="sm" onClick={() => void handleDeleteProgramacao(p)}>
+                            Excluir
+                          </Button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -511,6 +589,36 @@ const AdminPanel = () => {
                 Cancelar
               </Button>
               <Button type="submit">Salvar alterações</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingProgramacao} onOpenChange={(open) => !open && setEditingProgramacao(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar programação</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateProgramacao} className="space-y-3 mt-2">
+            <Input
+              placeholder="Período (ex.: Semana 1, Março/2025)"
+              value={editProgramacaoPeriodo}
+              onChange={(e) => setEditProgramacaoPeriodo(e.target.value)}
+            />
+            <Textarea
+              placeholder="Descreva aqui a programação..."
+              value={editProgramacaoDescricao}
+              onChange={(e) => setEditProgramacaoDescricao(e.target.value)}
+              className="min-h-[120px]"
+              required
+            />
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setEditingProgramacao(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSavingProgramacao}>
+                {isSavingProgramacao ? "Salvando..." : "Salvar alterações"}
+              </Button>
             </div>
           </form>
         </DialogContent>

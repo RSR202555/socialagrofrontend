@@ -8,7 +8,7 @@ const pool = new Pool({
   password: process.env.POSTGRES_PASSWORD,
 });
 
-export const query = (text: string, params?: any[]) => {
+export const query = (text: string, params?: unknown[]) => {
   return pool.query(text, params);
 };
 
