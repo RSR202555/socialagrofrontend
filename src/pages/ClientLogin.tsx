@@ -66,9 +66,7 @@ const ClientLogin = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
           <Leaf className="w-8 h-8 text-agro-gold" />
-          <span className="font-heading font-bold text-2xl text-primary-foreground">
-            <span className="text-agro-gold">Social</span> Agro
-          </span>
+          <img src="/logo.png" alt="Social Agro" className="h-11 md:h-12 w-auto" />
         </Link>
 
         {/* Card */}

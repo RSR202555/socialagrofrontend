@@ -289,9 +289,7 @@ const ClientDashboard = () => {
         <div className="p-6 border-b border-border/40">
           <Link to="/" className="flex items-center gap-2">
             <Leaf className="w-6 h-6 text-agro-gold" />
-            <span className="font-heading font-bold text-lg text-foreground">
-              <span className="text-primary">Social</span> Agro
-            </span>
+            <img src="/logo.png" alt="Social Agro" className="h-10 w-auto" />
           </Link>
         </div>
 
@@ -349,9 +347,7 @@ const ClientDashboard = () => {
             <div className="p-6 border-b border-border/40 flex items-center justify-between bg-black/60">
               <Link to="/" className="flex items-center gap-2">
                 <Leaf className="w-6 h-6 text-agro-gold" />
-                <span className="font-heading font-bold text-lg text-foreground">
-                  <span className="text-primary">Social</span> Agro
-                </span>
+                <img src="/logo.png" alt="Social Agro" className="h-10 w-auto" />
               </Link>
               <button onClick={() => setIsSidebarOpen(false)}>
                 <X className="w-5 h-5 text-muted-foreground" />
