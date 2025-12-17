@@ -5,6 +5,10 @@ import { Calendar, Camera, BarChart3, Trophy, ArrowRight } from 'lucide-react';
 const FeirasEventos = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
+  const openWhatsApp = () => {
+    window.open('https://wa.me/5575998884064', '_blank', 'noopener,noreferrer');
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -165,7 +169,7 @@ const FeirasEventos = () => {
 
         {/* CTA */}
         <div className="animate-on-scroll opacity-0 text-center mt-12">
-          <Button variant="default" size="lg">
+          <Button variant="default" size="lg" onClick={openWhatsApp}>
             SAIBA MAIS
             <ArrowRight className="w-5 h-5" />
           </Button>

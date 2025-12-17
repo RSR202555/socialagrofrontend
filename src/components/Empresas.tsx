@@ -5,6 +5,10 @@ import { Building2, Rocket, Trophy, ArrowRight } from 'lucide-react';
 const Empresas = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
+  const openWhatsApp = () => {
+    window.open('https://wa.me/5575998884064', '_blank', 'noopener,noreferrer');
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -198,7 +202,7 @@ const Empresas = () => {
             </p>
 
             <div className="pt-2">
-              <Button variant="default" size="lg" className="w-full sm:w-auto">
+              <Button variant="default" size="lg" className="w-full sm:w-auto" onClick={openWhatsApp}>
                 SAIBA MAIS
                 <ArrowRight className="w-5 h-5" />
               </Button>
@@ -276,7 +280,7 @@ const Empresas = () => {
             </p>
 
             <div className="pt-2">
-              <Button variant="default" size="lg" className="w-full sm:w-auto">
+              <Button variant="default" size="lg" className="w-full sm:w-auto" onClick={openWhatsApp}>
                 SAIBA MAIS
                 <ArrowRight className="w-5 h-5" />
               </Button>
