@@ -396,7 +396,7 @@ const AdminPanel = () => {
             />
             <Input
               type="date"
-              placeholder="Data de pagamento"
+              placeholder="Data de vencimento"
               value={clienteDataPagamento}
               onChange={(e) => setClienteDataPagamento(e.target.value)}
             />
@@ -564,7 +564,7 @@ const AdminPanel = () => {
             />
             <Input
               type="date"
-              placeholder="Data de pagamento"
+              placeholder="Data de vencimento"
               value={editDataPagamento}
               onChange={(e) => setEditDataPagamento(e.target.value)}
             />

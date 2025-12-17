@@ -209,6 +209,28 @@ const ClientDashboard = () => {
     return paid.getFullYear() === now.getFullYear() && paid.getMonth() === now.getMonth();
   };
 
+  const getProximoVencimento = () => {
+    const base = clientInfo?.data_pagamento ? new Date(clientInfo.data_pagamento) : null;
+    const day = base ? base.getDate() : 10;
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
+    const clampDay = (y: number, m: number, d: number) => Math.min(d, daysInMonth(y, m));
+
+    let due = new Date(year, month, clampDay(year, month, day), 23, 59, 59, 999);
+    if (due.getTime() < now.getTime()) {
+      const nextMonth = month + 1;
+      due = new Date(year, nextMonth, clampDay(year, nextMonth, day), 23, 59, 59, 999);
+    }
+
+    return due;
+  };
+
+  const formatDateBR = (d: Date) => d.toLocaleDateString('pt-BR');
+
   const handleLogout = () => {
     localStorage.removeItem('client_token');
     localStorage.removeItem('client_info');
@@ -485,9 +507,7 @@ const ClientDashboard = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Próximo vencimento</span>
                       <span className="text-foreground">
-                        {clientInfo?.data_pagamento
-                          ? `Dia ${new Date(clientInfo.data_pagamento).getDate()} de cada mês`
-                          : 'Dia 10 de cada mês'}
+                        {formatDateBR(getProximoVencimento())}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
