@@ -210,8 +210,16 @@ const ClientDashboard = () => {
   };
 
   const getProximoVencimento = () => {
-    const base = clientInfo?.data_pagamento ? new Date(clientInfo.data_pagamento) : null;
-    const day = base ? base.getDate() : 10;
+    const parseDateOnly = (value: string) => {
+      const m = /^\d{4}-\d{2}-\d{2}$/.exec(value);
+      if (!m) return null;
+      const [y, mo, d] = value.split('-').map((n) => Number(n));
+      if (!y || !mo || !d) return null;
+      return { y, mo, d };
+    };
+
+    const parsed = clientInfo?.data_pagamento ? parseDateOnly(clientInfo.data_pagamento) : null;
+    const day = parsed ? parsed.d : 10;
 
     const now = new Date();
     const year = now.getFullYear();
